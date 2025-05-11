@@ -3,6 +3,8 @@ Firmware for the hacked Orico's USB 7-port Switch Hub.
 
 With this project, I designed a modification to Orico's circuit so as to be able to turn individual ports from the computer.
 
+![astrousbc](https://github.com/user-attachments/assets/37e5ce10-f2d4-4e20-b748-5764c6684ad1)
+
 ## External Libraries
 No external libraries are required.
 
