@@ -46,18 +46,26 @@ bool is_bit_on(uint num, uint bit) {
 
 ulong lastPing;
 
+void fwinfo() {
+  Serial.print("AstroUSB-Nano v0.0.1-beta ");
+  Serial.print(__DATE__);
+  Serial.print(" ");
+  Serial.println(__TIME__);
+  Serial.flush();
+}
+
 void setup() {
+  state = EEPROM.read(0);
+
+  for (int i = 0; i < PORT_COUNT; i++) {
+    digitalWrite(PORTS[i], is_bit_on(state, i) == 0 ? HIGH : LOW);
+    pinMode(PORTS[i], OUTPUT);
+  }
+
   Serial.begin(115200);
+  fwinfo();
 
   lastPing = millis();
-  
-  // Preberemo state
-  state = EEPROM.read(0);
-  
-  for (int i = 0; i < PORT_COUNT; i++) {
-    pinMode(PORTS[i], OUTPUT);
-    digitalWrite(PORTS[i], !is_bit_on(state, i));
-  }
 }
 
 void process(String data) {
@@ -69,14 +77,14 @@ void process(String data) {
     return;
   }
   if (command == "FWINFO") {
-    Serial.print("AstroUSB-Nano v0.0.1-beta ");
-    Serial.print(__DATE__);
-    Serial.print(" ");
-    Serial.println(__TIME__);
-    Serial.flush();
+    fwinfo();
     return;
   } else if (command == "PING") {
     Serial.println("PONG");
+    Serial.flush();
+    return;
+  } else if (command == "ACK") {
+    Serial.println("OK");
     Serial.flush();
     return;
   }
@@ -114,13 +122,17 @@ void process(String data) {
 //String data;
 
 void loop() {
-  while (Serial.available()) {
-    String data = Serial.readStringUntil('\n');
-    process(data);
-  }
-  if ((millis() - lastPing) > 2000) {
+  if (!Serial) {
     lastPing = millis();
     Serial.println("PING");
     Serial.flush();
+    delay(2000);
+  } else {
+    String data = Serial.readStringUntil('\n');
+    if (data.length() > 0) {
+      process(data);
+      //Serial.print("RX: ");
+      //Serial.println(data);
+    }
   }
 }
